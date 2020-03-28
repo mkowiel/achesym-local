@@ -14,20 +14,20 @@ This is a simple script that allows to use the achesym program on local machine.
  
 To use Achesym web server please visit: http://achesym.ibch.poznan.pl/
 
-# Installation and usage
+# Installation 
 
 1. Install Python. The script is compatible with Python 2.7.
 2. Install cctbx (https://github.com/cctbx/cctbx_project)
 3. `cd achesym`
-4. Execute script `cctbx.python achesym.py -analyze -pack input.pdb output.pdb`
+4. Execute script `cctbx.python achesym.py -analyze input.pdb output.pdb`
 
 # Usage
 
     achesym.py input_file.pdb output_file.pdb [structure_factors.cif output_structure_factors.cif]
                      [-analyze] [-pack] [-group "A,B;C,D"]
     
-    -analyze: analyze chain contacts
-    -pack: find compact packing
+    -analyze: Find the most compact assembly (with "common volume" analysis)
+    -pack: Find the most compact assembly (with bounding boxes) - deprecated
     -group "A,B;C,D": force chain grouping. In the example chains A and B will be
                       treat like one object and chains C and D as a second object
                       group separator ";"
@@ -35,5 +35,5 @@ To use Achesym web server please visit: http://achesym.ibch.poznan.pl/
     
     Program requires cctbx, and can be run by cctbx aware python intepreter
     For example:
-    #> cctbx.python achesym.py -analyze -pack in.pdb out.pdb 
+    #> cctbx.python achesym.py -analyze in.pdb out.pdb 
 

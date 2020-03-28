@@ -2186,7 +2186,7 @@ class Chesym(object):
                         'structure factors in .cif format'
                     )
                 if len(vec_h) != len(vec_k) or len(vec_h) != len(vec_l):
-                    raise Exception('Program fialed to load all hkl')
+                    raise Exception('Program failed to load all hkl')
                 out_vec_h = list()
                 out_vec_k = list()
                 out_vec_l = list()
@@ -2231,8 +2231,8 @@ def main():  # pragma: no mccabe
 Usage: achesym.py input_file.pdb output_file.pdb [structure_factors.cif output_structure_factors.cif]
                  [-analyze] [-pack] [-group "A,B;C,D"]
 
--analyze: analyze chain contacts
--pack: find compact packing
+-analyze: Find the most compact assembly (with "common volume" analysis)
+-pack: Find the most compact assembly (with bounding boxes) - deprecated
 -group "A,B;C,D": force chain grouping. In the example chains A and B will be
                   treat like one object and chains C and D as a second object
                   group separator ";"
@@ -2240,7 +2240,7 @@ Usage: achesym.py input_file.pdb output_file.pdb [structure_factors.cif output_s
 
 Program requires cctbx, and can be run by cctbx aware python interpreter
 For example:
-#> cctbx.python achesym.py -analyze -pack in.pdb out.pdb
+#> cctbx.python achesym.py -analyze in.pdb out.pdb
     """
 
     if '-h' in sys.argv or '-help' in sys.argv:
