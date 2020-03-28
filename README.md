@@ -21,9 +21,10 @@ To use Achesym web server please visit: http://achesym.ibch.poznan.pl/
 3. `cd achesym`
 4. Execute script `cctbx.python achesym.py -analyze -pack input.pdb output.pdb`
 
+# Usage
 
-    Usage: chesym.py input_file.pdb output_file.pdb [structure_factors.cif output_structure_factors.cif]
-                     [-analyze] [-group "A,B;C,D"]
+    achesym.py input_file.pdb output_file.pdb [structure_factors.cif output_structure_factors.cif]
+                     [-analyze] [-pack] [-group "A,B;C,D"]
     
     -analyze: analyze chain contacts
     -pack: find compact packing
@@ -34,5 +35,5 @@ To use Achesym web server please visit: http://achesym.ibch.poznan.pl/
     
     Program requires cctbx, and can be run by cctbx aware python intepreter
     For example:
-    #> cctbx.python chesym.py in.pdb out.pdb -analyze -pack
+    #> cctbx.python achesym.py -analyze -pack in.pdb out.pdb 
 
