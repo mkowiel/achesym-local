@@ -1362,7 +1362,7 @@ class Packer(object):
         print >> self.log_stream, datetime.datetime.now()
         crystal_symmetry = data_pdb.crystal_symmetry_from_cryst1()
         distance = self.test_minimal_distances(model, crystal_symmetry)
-        print >> self.log_stream, 'Minimal distance betwee chains %s' % distance
+        print >> self.log_stream, 'Minimal distance between chains %s' % distance
         print >> self.log_stream, datetime.datetime.now()
 
     def pack(self):  # pragma: no mccabe
@@ -1476,14 +1476,14 @@ class Chesym(object):
     def report_progress(self, percent, total):
         pass
 
-    def report_progres_post_grouping(self, percent, total, test_grouping):
+    def report_progress_post_grouping(self, percent, total, test_grouping):
         if (test_grouping):
             self.report_progress(0.4 * percent + 0.3 * total, total)
         else:
             self.report_progress(0.7 * percent, total)
 
     # group like "A,B;C,D"
-    # should produce 2 grapus made from chains AB and CD
+    # should produce 2 groups made from chains AB and CD
     def get_group_dict(self, group, chains, letters=False):  # pragma: no mccabe
         group_dict = {}
         chain_id = []
@@ -1529,6 +1529,8 @@ class Chesym(object):
             for atom in chain.atoms():
                 if (not atom.hetero):
                     atoms.append(atom.xyz)
+        if len(atoms) == 0:
+            raise Exception('It seems model does not have atoms or have atoms marked only with `HETATM` keyword.')
         return atoms.mean()
 
     def get_group_coord(self, chains_coord, tags):
@@ -1886,7 +1888,7 @@ class Chesym(object):
             applied_trans_in_cart.append(t)
         return applied_chains, applied_rot_in_cart, applied_trans_in_cart
 
-    def chesym(self, in_pdb='in.pdb', out_pdb='out.pdb', test_compactness=False,
+    def chesym(self, in_pdb='in.pdb', out_pdb='out.pdb', test_copactness=False,
                in_cif='', out_cif='out.cif', group=None, analyze_contacts=False,
                grid_spacing=0.7, radius=2.3, function='sum'):  # pragma: no mccabe
 
@@ -1894,9 +1896,9 @@ class Chesym(object):
         with open(in_pdb, 'r') as pdb_file:
             txt = pdb_file.read()
             if 'CRYST' not in txt:
-                raise Exception('Missing unit cell informaton, CRYST record is required')
+                raise Exception('Missing unit cell information, CRYST record is required')
             if 'SCALE' not in txt:
-                raise Exception('Missing fractional transcormation matrix, SCALE records are required')
+                raise Exception('Missing fractional transformation matrix, SCALE records are required')
             txt = ''
 
         data_pdb = iotbx.pdb.input(file_name=in_pdb)
@@ -1928,7 +1930,7 @@ class Chesym(object):
         assert len(pdb_hierarchy.models()) == 1
         model = pdb_hierarchy.models()[0]
         chains_size = model.chains_size()  # number of chains
-        test_grouping = chains_size > 1 and test_compactness is True
+        test_grouping = chains_size > 1 and test_copactness is True
         ########################
         mass = self.mean_xyz_without_hetatom(model)
         fmass = xray_structure.unit_cell().fractionalize(mass)
@@ -1997,12 +1999,16 @@ class Chesym(object):
                         print >> self.log_stream, "  T: %d,%d,%d" % (ptx, pty, ptz)
                     sym_applied_in_fractional.extend(sym_applied_in_fractional_tmp.values())
 
-            xray_structure = pdb_hierarchy.extract_xray_structure(crystal_symmetry=data_pdb.crystal_symmetry())
+            # The following line does not handle unknown atoms
+            # xray_structure = pdb_hierarchy.extract_xray_structure(crystal_symmetry=data_pdb.crystal_symmetry())
+            xray_structure = pdb_hierarchy.as_pdb_input(data_pdb.crystal_symmetry()).xray_structure_simple(
+                enable_scattering_type_unknown=True
+            )
             self.report_progress(30.0, 100.0)
             self.log_stream.flush()
         ########################
 
-        elif (test_compactness and test_grouping):
+        elif (test_copactness and test_grouping):
             group_dict = self.get_group_dict(group, model.chains())
             translation, matching = self.packing_by_bounding_boxes(group_dict, model, xray_structure)
 
@@ -2015,7 +2021,11 @@ class Chesym(object):
                                    xyz_in_frac[2] + translation[group_dict[chain.id]][2])
                     xyz_in_cart = xray_structure.unit_cell().orthogonalize(xyz_in_frac)
                     atom.set_xyz(xyz_in_cart)
-            xray_structure = pdb_hierarchy.extract_xray_structure(crystal_symmetry=data_pdb.crystal_symmetry())
+            # The following line does not handle unknown atoms
+            # xray_structure = pdb_hierarchy.extract_xray_structure(crystal_symmetry=data_pdb.crystal_symmetry())
+            xray_structure = pdb_hierarchy.as_pdb_input(data_pdb.crystal_symmetry()).xray_structure_simple(
+                enable_scattering_type_unknown=True
+            )
             self.report_progress(30.0, 100.0)
 
         ########################
@@ -2109,7 +2119,7 @@ class Chesym(object):
                     best_t3 = t3
                     found = True
                 progress_i += 1
-                self.report_progres_post_grouping(0.9 * float(progress_i) / progress_len, 1.0, test_grouping)
+                self.report_progress_post_grouping(0.9 * float(progress_i) / progress_len, 1.0, test_grouping)
 
         print >> self.log_stream, '####'
         self.log_stream.flush()
@@ -2170,7 +2180,7 @@ class Chesym(object):
 
         gc.collect()
         print >> self.log_stream, '####'
-        self.report_progres_post_grouping(95.0, 100.0, test_grouping)
+        self.report_progress_post_grouping(95.0, 100.0, test_grouping)
 
         if (in_cif != ''):
             cif_reader = cif.reader(file_path=in_cif)
@@ -2239,7 +2249,7 @@ class Chesym(object):
                 out.close()
 
         print >> self.log_stream, '####'
-        self.report_progres_post_grouping(100.0, 100.0, test_grouping)
+        self.report_progress_post_grouping(100.0, 100.0, test_grouping)
 
 
 def main():  # pragma: no mccabe
