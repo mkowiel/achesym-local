@@ -1,8 +1,17 @@
 # -*- coding: utf-8 -*-
 #
-# Author: Marcin Kowiel, 2013-2019
+# Author: Marcin Kowiel, 2013-2021
 # Email : mkowiel@ump.edu.pl
-# Last modified: 25-09-2019 version 1.0.11
+# Last modified: 08-01-2021 version 1.0.14
+#
+# 1.0.14 (08.01.2021)
+#   add number of molecules to CRYST record
+#
+# 1.0.13 (10.09.2020)
+#   fix error message for structures only with HETATM atoms
+#
+# 1.0.12 (17.08.2020)
+#   fix unknown atoms handling
 #
 # 1.0.11 (13.02.2020):
 #   fix bug with atom Mismatch
@@ -45,7 +54,7 @@ from scitbx.math import principal_axes_of_inertia
 from scitbx import matrix
 from mmtbx.tls import tools
 
-ACHESYM_VERSION = '1.0.11'
+ACHESYM_VERSION = '1.0.14'
 
 DEG_AS_RAD = math.pi / 180.0
 # 2000000 should fit 2GB of memory so 2000000*4 should fit into 8GB limit
@@ -1892,10 +1901,15 @@ class Chesym(object):
 
         data_pdb = iotbx.pdb.input(file_name=in_pdb)
         pdb_hierarchy = data_pdb.construct_hierarchy()
+        cryst1_z = data_pdb.extract_cryst1_z_columns()
 
         # the xray_structure_simple mix up order
         # xray_structure = data_pdb.xray_structure_simple()
-        xray_structure = pdb_hierarchy.extract_xray_structure(crystal_symmetry=data_pdb.crystal_symmetry())
+        # this does not handle unknown atoms
+        # xray_structure = pdb_hierarchy.extract_xray_structure(crystal_symmetry=data_pdb.crystal_symmetry())
+        xray_structure = pdb_hierarchy.as_pdb_input(data_pdb.crystal_symmetry()).xray_structure_simple(
+            enable_scattering_type_unknown=True
+        )
 
         sg = xray_structure.space_group()
         sg_type = sg.type()
@@ -2146,6 +2160,8 @@ class Chesym(object):
             crystal_symmetry=xray_structure.crystal_symmetry(),
             atoms_reset_serial_first_value=None,
             interleaved_conf=1,
+            write_scale_records=True,
+            cryst1_z=cryst1_z,
         )
         out.write(pdb_str)
 
